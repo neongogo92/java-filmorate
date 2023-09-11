@@ -8,7 +8,9 @@ public class ReleaseDateValidator implements ConstraintValidator<ValidReleaseDat
     private static final LocalDate MIN_RELEASE_DATE = LocalDate.of(1895, 12, 28);
 
     @Override
-    public void initialize(ValidReleaseDate constraintAnnotation) {}
+    public void initialize(ValidReleaseDate constraintAnnotation) {
+
+    }
 
     @Override
     public boolean isValid(LocalDate releaseDate, ConstraintValidatorContext constraintValidatorContext) {
