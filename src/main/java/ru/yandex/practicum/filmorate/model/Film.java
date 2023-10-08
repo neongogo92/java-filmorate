@@ -13,18 +13,19 @@ import java.util.Set;
 @Data
 @AllArgsConstructor
 public class Film {
-  private Long id;
+    private Long id;
 
-  @NotBlank(message = "Не может быть пустым")
-  private String name;
+    @NotBlank(message = "Не может быть пустым")
+    private String name;
 
-  @Size(min = 1, max = 200, message = "Максимальная длинна 200 символов")
-  private String description;
+    @Size(min = 1, max = 200, message = "Максимальная длинна 200 символов")
+    private String description;
 
-  @ValidReleaseDate private LocalDate releaseDate;
+    @ValidReleaseDate
+    private LocalDate releaseDate;
 
-  @Positive(message = "Продолжительность фильма должна быть положительной")
-  private long duration;
+    @Positive(message = "Продолжительность фильма должна быть положительной")
+    private long duration;
 
-  private Set<Long> likes;
+    private Set<Long> likes;
 }

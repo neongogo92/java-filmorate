@@ -7,5 +7,5 @@ import java.util.List;
 
 @Data
 public class ErrorResponseList {
-  private final List<ErrorResponse> errorResponses = new ArrayList<>();
+    private final List<ErrorResponse> errorResponses = new ArrayList<>();
 }
