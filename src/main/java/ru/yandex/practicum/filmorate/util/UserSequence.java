@@ -1,6 +1,6 @@
-package ru.yandex.practicum.filmorate.model;
+package ru.yandex.practicum.filmorate.util;
 
-public class FilmSequence {
+public class UserSequence {
     private static long id = 1;
 
     public static long getNextId() {

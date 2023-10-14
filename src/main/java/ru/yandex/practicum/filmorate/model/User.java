@@ -1,26 +1,32 @@
 package ru.yandex.practicum.filmorate.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import ru.yandex.practicum.filmorate.annotation.NoWhiteSpaces;
 
-import javax.validation.constraints.*;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.PastOrPresent;
 import java.time.LocalDate;
+import java.util.Set;
 
 @Data
+@AllArgsConstructor
 public class User {
-
     private Long id;
 
-    @NotBlank(message = "Email cannot be blank")
-    @Email(message = "Invalid email format")
+    @NotBlank(message = "email не может быть пустым")
+    @Email(message = "Неверный формат для email")
     private String email;
 
-    @NotBlank(message = "Login cannot be blank")
-    @Pattern(regexp = "^[^\\s]+$", message = "Login cannot contain spaces")
+    @NotBlank(message = "login не может быть пустым")
+    @NoWhiteSpaces
     private String login;
 
     private String name;
 
-    @Past(message = "Birthday cannot be in the future")
-    @NotNull(message = "Birthday cannot be null")
+    @PastOrPresent(message = "birthday не может быть в будущем")
     private LocalDate birthday;
+
+    private Set<Long> friends;
 }
