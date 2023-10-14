@@ -10,13 +10,13 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class MpaService {
-  private final MpaDao mpaDao;
+    private final MpaDao mpaDao;
 
-  public List<Mpa> findAll() {
-    return mpaDao.findAll();
-  }
+    public List<Mpa> findAll() {
+        return mpaDao.findAll();
+    }
 
-  public Mpa findById(Long id) {
-    return mpaDao.findById(id);
-  }
+    public Mpa findById(Long id) {
+        return mpaDao.findById(id);
+    }
 }

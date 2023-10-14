@@ -13,20 +13,20 @@ import java.util.Set;
 @Data
 @AllArgsConstructor
 public class User {
-  private Long id;
+    private Long id;
 
-  @NotBlank(message = "email не может быть пустым")
-  @Email(message = "Неверный формат для email")
-  private String email;
+    @NotBlank(message = "email не может быть пустым")
+    @Email(message = "Неверный формат для email")
+    private String email;
 
-  @NotBlank(message = "login не может быть пустым")
-  @NoWhiteSpaces // проверяет, что нет пробелов в середине
-  private String login;
+    @NotBlank(message = "login не может быть пустым")
+    @NoWhiteSpaces // проверяет, что нет пробелов в середине
+    private String login;
 
-  private String name;
+    private String name;
 
-  @PastOrPresent(message = "birthday не может быть в будущем")
-  private LocalDate birthday;
+    @PastOrPresent(message = "birthday не может быть в будущем")
+    private LocalDate birthday;
 
-  private Set<Long> friends;
+    private Set<Long> friends;
 }

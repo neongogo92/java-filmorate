@@ -16,120 +16,120 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class UserService {
-  private final UserStorage userStorage;
+    private final UserStorage userStorage;
 
-  @Autowired
-  public UserService(@Qualifier("userDBStorage") UserStorage userStorage) {
-    this.userStorage = userStorage;
-  }
-
-  public User add(User user) {
-    if (user.getName() == null || user.getName().isEmpty()) {
-      user.setName(user.getLogin());
+    @Autowired
+    public UserService(@Qualifier("userDBStorage") UserStorage userStorage) {
+        this.userStorage = userStorage;
     }
 
-    if (user.getFriends() == null) {
-      user.setFriends(new HashSet<>());
+    public User add(User user) {
+        if (user.getName() == null || user.getName().isEmpty()) {
+            user.setName(user.getLogin());
+        }
+
+        if (user.getFriends() == null) {
+            user.setFriends(new HashSet<>());
+        }
+
+        user.setLogin(user.getLogin().trim());
+
+        log.info("Сохраняем нового пользователя {}", userStorage.add(user));
+
+        return user;
     }
 
-    user.setLogin(user.getLogin().trim());
+    public List<User> findAll() {
+        List<User> users = userStorage.findAll();
+        log.info("Возвращаем всех пользователей. Общее количество: {}", users.size());
 
-    log.info("Сохраняем нового пользователя {}", userStorage.add(user));
-
-    return user;
-  }
-
-  public List<User> findAll() {
-    List<User> users = userStorage.findAll();
-    log.info("Возвращаем всех пользователей. Общее количество: {}", users.size());
-
-    return users;
-  }
-
-  public User update(User user) {
-    if (userStorage.findById(user.getId()) == null) {
-      log.error("Пользователь с id={} не существует", user.getId());
-      throw new CustomExceptions.UserDoesNotExistsException(
-          String.format("Пользователя с id=%s не существует", user.getId()));
+        return users;
     }
 
-    if (user.getFriends() == null) {
-      user.setFriends(new HashSet<>());
+    public User update(User user) {
+        if (userStorage.findById(user.getId()) == null) {
+            log.error("Пользователь с id={} не существует", user.getId());
+            throw new CustomExceptions.UserDoesNotExistsException(
+                    String.format("Пользователя с id=%s не существует", user.getId()));
+        }
+
+        if (user.getFriends() == null) {
+            user.setFriends(new HashSet<>());
+        }
+
+        log.info("Обновляем данные пользователя с id={}", user.getId());
+        userStorage.update(user);
+
+        return user;
     }
 
-    log.info("Обновляем данные пользователя с id={}", user.getId());
-    userStorage.update(user);
+    public void addFriend(Long userId, Long friendId) {
+        User user = getUser(userId);
+        User friend = getUser(friendId);
 
-    return user;
-  }
+        user.getFriends().add(friendId);
 
-  public void addFriend(Long userId, Long friendId) {
-    User user = getUser(userId);
-    User friend = getUser(friendId);
+        userStorage.update(user);
 
-    user.getFriends().add(friendId);
-//    friend.getFriends().add(userId);
+        log.info(
+                "Пользователи {}(id={}) и {}(id={}) теперь друзья",
+                user.getName(),
+                userId,
+                friend.getName(),
+                friendId);
+    }
 
-    userStorage.update(user);
-//    userStorage.update(friend);
+    public void deleteFriend(Long userId, Long friendId) {
+        User user = getUser(userId);
+        User friend = getUser(friendId);
 
-    log.info(
-        "Пользователи {}(id={}) и {}(id={}) теперь друзья",
-        user.getName(),
-        userId,
-        friend.getName(),
-        friendId);
-  }
+        user.getFriends().remove(friendId);
+        friend.getFriends().remove(userId);
 
-  public void deleteFriend(Long userId, Long friendId) {
-    User user = getUser(userId);
-    User friend = getUser(friendId);
+        userStorage.update(user);
+        userStorage.update(friend);
 
-    user.getFriends().remove(friendId);
-    friend.getFriends().remove(userId);
+        log.info(
+                "Пользователи {}(id={}) и {}(id={}) больше не друзья",
+                user.getName(),
+                userId,
+                friend.getName(),
+                friendId);
+    }
 
-    userStorage.update(user);
-    userStorage.update(friend);
+    public User getUser(Long id) {
+        User user = userStorage.findById(id);
 
-    log.info(
-        "Пользователи {}(id={}) и {}(id={}) больше не друзья",
-        user.getName(),
-        userId,
-        friend.getName(),
-        friendId);
-  }
+        if (user == null) {
+            throw new CustomExceptions.UserDoesNotExistsException(String.format("Пользователь id=%s не существует", id));
+        }
+        return user;
+    }
 
-  public User getUser(Long id) {
-    User user = userStorage.findById(id);
+    public User findById(Long id) {
+        return getUser(id);
+    }
 
-    if (user == null)
-      throw new CustomExceptions.UserDoesNotExistsException(String.format("Пользователь id=%s не существует", id));
+    public List<User> getFriends(Long id) {
+        List<User> friends = new ArrayList<>();
+        User user = getUser(id);
 
-    return user;
-  }
+        user.getFriends().forEach(x -> friends.add(userStorage.findById(x)));
 
-  public User findById(Long id) {
-    return getUser(id);
-  }
+        return friends;
+    }
 
-  public List<User> getFriends(Long id) {
-    List<User> friends = new ArrayList<>();
-    User user = getUser(id);
+    public List<User> getMutualFriends(Long userId, Long otherUserId) {
+        User user = getUser(userId);
+        User otherUser = getUser(otherUserId);
 
-    user.getFriends().forEach(x -> friends.add(userStorage.findById(x)));
+        if (user.getFriends() == null || otherUser.getFriends() == null) {
+            return new ArrayList<>();
+        }
 
-    return friends;
-  }
-
-  public List<User> getMutualFriends(Long userId, Long otherUserId) {
-    User user = getUser(userId);
-    User otherUser = getUser(otherUserId);
-
-    if (user.getFriends() == null || otherUser.getFriends() == null) return new ArrayList<>();
-
-    return user.getFriends().stream()
-        .filter(id -> otherUser.getFriends().stream().anyMatch(otherId -> otherId.equals(id)))
-        .map(userStorage::findById)
-        .collect(Collectors.toList());
-  }
+        return user.getFriends().stream()
+                .filter(id -> otherUser.getFriends().stream().anyMatch(otherId -> otherId.equals(id)))
+                .map(userStorage::findById)
+                .collect(Collectors.toList());
+    }
 }
