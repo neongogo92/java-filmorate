@@ -17,10 +17,10 @@ left join friends on (id = user_id)
 where id = N
 
 Получить фильм по идентификатору:
-SELECT * FROM film where id =  N
+SELECT * FROM films where id =  N
 
 Получить первые N самых популярных фильмов
-select * , count(user_id) from film 
+select * , count(user_id) from films 
 right join likes on (id = film_id)
 group by film_id
 order by 2 desc

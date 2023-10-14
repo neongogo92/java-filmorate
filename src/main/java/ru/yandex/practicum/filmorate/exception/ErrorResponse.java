@@ -1,9 +1,0 @@
-package ru.yandex.practicum.filmorate.exception;//package ru.yandex.practicum.filmorate.exception1;
-
-import lombok.Data;
-
-@Data
-public class ErrorResponse {
-    private final String error;
-    private final String description;
-}
