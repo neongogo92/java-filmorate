@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.dao.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
@@ -24,13 +25,18 @@ public class GenreDaoImpl implements GenreDao {
 
     @Override
     public Genre findById(Long id) {
-        SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet("select * from genres where id = ?", id);
-
-        if (sqlRowSet.next()) {
-            return new Genre(sqlRowSet.getLong("id"), sqlRowSet.getString("name"));
-        } else {
+        try {
+            return jdbcTemplate.queryForObject(
+                    "select * from genres where id = ?",
+                    (rs, num) -> new Genre(rs.getLong("id"), rs.getString("name")),
+                    id
+            );
+        } catch (EmptyResultDataAccessException ex) {
             throw new CustomExceptions.GenreDoesNotExistsException(
-                    String.format("Рейтинг с id = %s не существует", id));
+                    String.format("Рейтинг с id = %s не существует", id)
+            );
         }
     }
+
+
 }
