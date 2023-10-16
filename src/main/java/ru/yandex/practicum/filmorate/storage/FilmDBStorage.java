@@ -17,6 +17,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dao.MpaDao;
+import ru.yandex.practicum.filmorate.exception.CustomExceptions;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
@@ -95,16 +96,20 @@ public class FilmDBStorage implements FilmStorage {
         jdbcTemplate.update("delete from likes where film_id = ?", film.getId());
 
         if (film.getLikes() != null)
-            if (!film.getLikes().isEmpty())
-                jdbcTemplate.batchUpdate(
-                        "insert into likes(film_id, user_id) values(?, ?)",
-                        film.getLikes(),
-                        50,
-                        (ps, userLike) -> {
-                            ps.setLong(1, film.getId());
-                            ps.setLong(2, userLike);
-                        });
+            if (!film.getLikes().isEmpty()) {
+                List<Long> validLikes = film.getLikes().stream().filter(userId -> userId != 0).collect(Collectors.toList());
+                if (!validLikes.isEmpty()) {
+                    jdbcTemplate.batchUpdate(
+                            "insert into likes(film_id, user_id) values(?, ?)",
+                            validLikes,
+                            50,
+                            (ps, userLike) -> {
+                                ps.setLong(1, film.getId());
+                                ps.setLong(2, userLike);
+                            });
 
+                }
+            }
         return film;
     }
 
@@ -168,34 +173,70 @@ public class FilmDBStorage implements FilmStorage {
 
     @Override
     public Film findById(Long id) {
-        String queryFilm = "select * from film where id = ?";
+        String queryFilm =
+                "SELECT f.*, g.id AS genre_id, g.name AS genre_name, r.id AS rating_id, r.name AS rating_name, l.user_id \n" +
+                        "FROM film f \n" +
+                        "LEFT JOIN films_genres fg ON f.id = fg.film_id \n" +
+                        "LEFT JOIN genres g ON fg.genre_id = g.id \n" +
+                        "LEFT JOIN ratings r ON f.rating_id = r.id \n" +
+                        "LEFT JOIN likes l ON f.id = l.film_id \n" +
+                        "WHERE f.id = ?\n" +
+                        "ORDER BY f.id, g.id\n";
 
-        try {
-            Film film = jdbcTemplate.queryForObject(queryFilm, (rs, rowNum) -> {
-                long filmId = rs.getLong("id");
-                String filmName = rs.getString("name");
-                String filmDescription = rs.getString("description");
-                LocalDate releaseDate = LocalDate.parse(rs.getString("release_date"), formatter);
-                long duration = rs.getLong("duration");
+        List<Film> films = jdbcTemplate.query(queryFilm, (rs, rowNum) -> {
+            long filmId = rs.getLong("id");
+            String filmName = rs.getString("name");
+            String filmDescription = rs.getString("description");
+            LocalDate releaseDate = LocalDate.parse(rs.getString("release_date"), formatter);
+            long duration = rs.getLong("duration");
+            Mpa mpa = new Mpa(rs.getLong("rating_id"), rs.getString("rating_name"));
+            Set<Long> likes = new HashSet<>();
+            Set<Genre> genres = new HashSet<>();
 
-                List<Long> likes = jdbcTemplate.queryForList("select user_id from likes where film_id = ?", Long.class, filmId);
+            do {
+                Long genreId = rs.getLong("genre_id");
+                String genreName = rs.getString("genre_name");
+                if (genreId != 0 && genreName != null) {
+                    genres.add(new Genre(genreId, genreName));
+                }
+                likes.add(rs.getLong("user_id"));
+            } while (rs.next() && rs.getLong("id") == filmId);
 
-                List<Genre> genres = jdbcTemplate.query("select g.id, g.name from genres g " +
-                        "inner join films_genres fg on g.id = fg.genre_id " +
-                        "where fg.film_id = ?", new BeanPropertyRowMapper<>(Genre.class), filmId);
+            return new Film(filmId, filmName, filmDescription, releaseDate, duration, likes, mpa, genres);
+        }, id);
 
-                Mpa mpa = jdbcTemplate.queryForObject("select r.id, r.name from ratings r " +
-                        "inner join film f on r.id = f.rating_id " +
-                        "where f.id = ?", new BeanPropertyRowMapper<>(Mpa.class), filmId);
-
-                return new Film(filmId, filmName, filmDescription, releaseDate, duration, new HashSet<>(likes), mpa, new HashSet<>(genres));
-            }, id);
-
-            return film;
-        } catch (EmptyResultDataAccessException ex) {
-            return null;
-        }
+        return films.isEmpty() ? null : films.get(0);
     }
+
+//    public Film findById(Long id) {
+//        String queryFilm = "select * from film where id = ?";
+//
+//        try {
+//            Film film = jdbcTemplate.queryForObject(queryFilm, (rs, rowNum) -> {
+//                long filmId = rs.getLong("id");
+//                String filmName = rs.getString("name");
+//                String filmDescription = rs.getString("description");
+//                LocalDate releaseDate = LocalDate.parse(rs.getString("release_date"), formatter);
+//                long duration = rs.getLong("duration");
+//
+//                List<Long> likes = jdbcTemplate.queryForList("select user_id from likes where film_id = ?", Long.class, filmId);
+//
+//                List<Genre> genres = jdbcTemplate.query("select g.id, g.name from genres g " +
+//                        "inner join films_genres fg on g.id = fg.genre_id " +
+//                        "where fg.film_id = ?", new BeanPropertyRowMapper<>(Genre.class), filmId);
+//
+//                Mpa mpa = jdbcTemplate.queryForObject("select r.id, r.name from ratings r " +
+//                        "inner join film f on r.id = f.rating_id " +
+//                        "where f.id = ?", new BeanPropertyRowMapper<>(Mpa.class), filmId);
+//
+//                return new Film(filmId, filmName, filmDescription, releaseDate, duration, new HashSet<>(likes), mpa, new HashSet<>(genres));
+//            }, id);
+//
+//            return film;
+//        } catch (EmptyResultDataAccessException ex) {
+//            return null;
+//        }
+//    }
 
     @Data
     @AllArgsConstructor

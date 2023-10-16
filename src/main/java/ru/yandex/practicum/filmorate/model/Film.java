@@ -33,6 +33,4 @@ public class Film {
 
     private Set<Genre> genres;
 
-    public Film() {
-    }
 }
