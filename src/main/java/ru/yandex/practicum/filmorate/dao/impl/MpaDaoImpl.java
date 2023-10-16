@@ -26,8 +26,8 @@ public class MpaDaoImpl implements MpaDao {
     public Mpa findById(Long id) {
         try {
             return jdbcTemplate.queryForObject(
-                    "select * from mpa where id = ?",
-                    (rs, num) -> new Mpa(rs.getLong("id"), rs.getString("name")),
+                    "select * from ratings where id = ?",
+                    (rs, rowNum) -> new Mpa(rs.getLong("id"), rs.getString("name")),
                     id
             );
         } catch (EmptyResultDataAccessException ex) {
