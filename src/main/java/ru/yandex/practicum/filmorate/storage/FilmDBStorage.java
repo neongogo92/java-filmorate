@@ -205,36 +205,6 @@ public class FilmDBStorage implements FilmStorage {
         return films.isEmpty() ? null : films.get(0);
     }
 
-//    public Film findById(Long id) {
-//        String queryFilm = "select * from film where id = ?";
-//
-//        try {
-//            Film film = jdbcTemplate.queryForObject(queryFilm, (rs, rowNum) -> {
-//                long filmId = rs.getLong("id");
-//                String filmName = rs.getString("name");
-//                String filmDescription = rs.getString("description");
-//                LocalDate releaseDate = LocalDate.parse(rs.getString("release_date"), formatter);
-//                long duration = rs.getLong("duration");
-//
-//                List<Long> likes = jdbcTemplate.queryForList("select user_id from likes where film_id = ?", Long.class, filmId);
-//
-//                List<Genre> genres = jdbcTemplate.query("select g.id, g.name from genres g " +
-//                        "inner join films_genres fg on g.id = fg.genre_id " +
-//                        "where fg.film_id = ?", new BeanPropertyRowMapper<>(Genre.class), filmId);
-//
-//                Mpa mpa = jdbcTemplate.queryForObject("select r.id, r.name from ratings r " +
-//                        "inner join film f on r.id = f.rating_id " +
-//                        "where f.id = ?", new BeanPropertyRowMapper<>(Mpa.class), filmId);
-//
-//                return new Film(filmId, filmName, filmDescription, releaseDate, duration, new HashSet<>(likes), mpa, new HashSet<>(genres));
-//            }, id);
-//
-//            return film;
-//        } catch (EmptyResultDataAccessException ex) {
-//            return null;
-//        }
-//    }
-
     @Data
     @AllArgsConstructor
     private static class FilmLike {
