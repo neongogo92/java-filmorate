@@ -2,9 +2,9 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.CustomExceptions;
-import ru.yandex.practicum.filmorate.exception.CustomExceptions.UserException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -19,21 +19,11 @@ public class UserService {
     private final UserStorage userStorage;
 
     @Autowired
-    public UserService(UserStorage userStorage) {
+    public UserService(@Qualifier("userDBStorage") UserStorage userStorage) {
         this.userStorage = userStorage;
     }
 
     public User add(User user) {
-        long id = userStorage.getNextId();
-
-        if (user.getId() == null) {
-            user.setId(id);
-        }
-
-        if (userStorage.findById(user.getId()) != null) {
-            throw new UserException(String.format("Пользователь с id=%s уже существует", user.getId()));
-        }
-
         if (user.getName() == null || user.getName().isEmpty()) {
             user.setName(user.getLogin());
         }
@@ -44,8 +34,7 @@ public class UserService {
 
         user.setLogin(user.getLogin().trim());
 
-        log.info("Сохраняем нового пользователя {}", user);
-        userStorage.add(user);
+        log.info("Сохраняем нового пользователя {}", userStorage.add(user));
 
         return user;
     }
@@ -79,10 +68,8 @@ public class UserService {
         User friend = getUser(friendId);
 
         user.getFriends().add(friendId);
-        friend.getFriends().add(userId);
 
         userStorage.update(user);
-        userStorage.update(friend);
 
         log.info(
                 "Пользователи {}(id={}) и {}(id={}) теперь друзья",
@@ -133,7 +120,6 @@ public class UserService {
     }
 
     public List<User> getMutualFriends(Long userId, Long otherUserId) {
-
         User user = getUser(userId);
         User otherUser = getUser(otherUserId);
 

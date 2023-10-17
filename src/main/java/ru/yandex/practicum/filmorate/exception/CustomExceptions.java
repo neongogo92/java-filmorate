@@ -24,4 +24,16 @@ public class CustomExceptions {
             super(error);
         }
     }
+
+    public static class MpaDoesNotExistsException extends RuntimeException {
+        public MpaDoesNotExistsException(String error) {
+            super(error);
+        }
+    }
+
+    public static class GenreDoesNotExistsException extends RuntimeException {
+        public GenreDoesNotExistsException(String error) {
+            super(error);
+        }
+    }
 }

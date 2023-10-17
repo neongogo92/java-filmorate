@@ -2,9 +2,9 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.CustomExceptions;
-import ru.yandex.practicum.filmorate.exception.CustomExceptions.FilmException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
@@ -22,7 +22,7 @@ public class FilmService {
     private final UserService userService;
 
     @Autowired
-    public FilmService(FilmStorage filmStorage, UserService userService) {
+    public FilmService(@Qualifier("filmDBStorage") FilmStorage filmStorage, UserService userService) {
         this.filmStorage = filmStorage;
         this.userService = userService;
     }
@@ -35,19 +35,12 @@ public class FilmService {
     }
 
     public Film add(Film film) {
-        long id = filmStorage.getNextId();
-
-        if (film.getId() == null) {
-            film.setId(id);
-        }
-
-        if (filmStorage.findById(film.getId()) != null) {
-            log.error("Фильм с id={} уже существует", film.getId());
-            throw new FilmException(String.format("Фильм с id=%s уже существует", film.getId()));
-        }
-
         if (film.getLikes() == null) {
             film.setLikes(new HashSet<>());
+        }
+
+        if (film.getGenres() == null) {
+            film.setGenres(new HashSet<>());
         }
 
         filmStorage.add(film);
@@ -83,6 +76,8 @@ public class FilmService {
 
         film.getLikes().add(userId);
 
+        update(film);
+
         log.info(
                 "Пользователю {}(id = {}) нравится фильм {}(id = {})",
                 user.getName(),
@@ -103,6 +98,8 @@ public class FilmService {
 
         film.getLikes().remove(userId);
 
+        update(film);
+
         log.info(
                 "Пользователю {}(id = {}) больше не нравится фильм {}(id = {})",
                 user.getName(),
@@ -117,6 +114,9 @@ public class FilmService {
         Comparator<Film> comparator =
                 Comparator.comparing(x -> x.getLikes().size(), Comparator.reverseOrder());
 
-        return filmStorage.findAll().stream().sorted(comparator).limit(count).collect(Collectors.toList());
+        return filmStorage.findAll().stream()
+                .sorted(comparator)
+                .limit(count)
+                .collect(Collectors.toList());
     }
 }

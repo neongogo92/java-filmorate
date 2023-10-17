@@ -28,4 +28,9 @@ public class Film {
     private long duration;
 
     private Set<Long> likes;
+
+    private Mpa mpa;
+
+    private Set<Genre> genres;
+
 }

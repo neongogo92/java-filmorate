@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.exception;//package ru.yandex.practicum.filmorate.exception1;
+package ru.yandex.practicum.filmorate.exception;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -54,7 +54,9 @@ class ErrorHandler {
 
     @ExceptionHandler({
             CustomExceptions.UserDoesNotExistsException.class,
-            CustomExceptions.FilmDoesNotExistsException.class
+            CustomExceptions.FilmDoesNotExistsException.class,
+            CustomExceptions.MpaDoesNotExistsException.class,
+            CustomExceptions.GenreDoesNotExistsException.class
     })
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ResponseBody

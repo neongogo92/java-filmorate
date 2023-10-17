@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.exception;//package ru.yandex.practicum.filmorate.exception1;
+package ru.yandex.practicum.filmorate.exception;
 
 import lombok.Data;
 
